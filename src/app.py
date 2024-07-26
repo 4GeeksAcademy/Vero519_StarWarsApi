@@ -56,6 +56,7 @@ def get_users():
     return jsonify(response_body), 200
 
 #GET para un usuario
+
 @app.route('/users/<int:id>', methods=['GET'])
 def get_user(id):
     # print(id)
@@ -66,6 +67,27 @@ def get_user(id):
     query_result= especific_user.serialize()
     print(query_result)
     return jsonify(query_result), 200
+
+#POST User (Crear un usuario)
+
+@app.route('/users', methods=['POST'])
+def add_new_user():
+    request_body= request.get_json()
+    # print(request_body)
+    especific_user= User.query.filter_by(email=request_body['email']).first() #me permite filtrar si el email existe
+    if especific_user:
+        return jsonify({"msj":"El usuario ya existe"}), 404 #en el caso que exista me avisa y da el error 404
+    
+    new_user = User(
+        name = request_body['name'],# informacion que quiero de mi usuario y que tengo contenida en mi request_body
+        email = request_body['email'],
+        pasword = request_body['password']
+    )
+    # print(new_user)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({"msj":"El usuario fue creado"}), 201
+
 
 #ENDPOINT PERSONAJES
 #GET Personajes
@@ -110,6 +132,7 @@ def get_planet(id):
     query_result= especific_planet.serialize()
     return jsonify(query_result), 200
 
+
 #ENDPOINT FAVORITOS
 #GET Favoritos
 @app.route('/user/<int:id>/favorites', methods=['GET']) #cada vez que tengo una ruta dinamica (ej.id) tengo que pasarlo como parametro
@@ -125,7 +148,59 @@ def get_favorites(id):
     }
     return jsonify(response_body), 200
 
+#POST Personaje_Favorito (agregar un Personaje a Favoritos)
+@app.route('/favorites/character/<int:id>', methods=['POST'])
+def add_new_character_fav(id):
+    request_body= request.get_json()
+    especific_user= User.query.filter_by(id=request_body['user_id']).first() #me permite filtrar si el usuario existe
+    if especific_user is None:
+        return jsonify({"msj":"El usuario no existe"}), 404 #en el caso que exista me avisa y da el error 404
+    
+    especific_character= Characters.query.filter_by(id=id).first() 
+    if especific_character is None:
+        return jsonify({"msj":"El personaje no existe"}), 404 #en el caso que exista me avisa y da el error 404
 
+    new_favorite = Favorites(
+        user_id  = request_body['user_id'],# informacion que quiero de mi usuario y que tengo contenida en mi request_body
+        characters_id = id, #es solo id porque ya lo obtengo en mi ruta
+    )
+
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify({"msj":"Tu favorito fue creado"}), 201
+
+   #POST Planeta Favorito
+@app.route('/favorites/planets/<int:id>', methods=['POST'])
+def add_new_planet_fav(id):
+    request_body= request.get_json()
+    especific_user= User.query.filter_by(id=request_body['user_id']).first() #me permite filtrar si el usuario existe
+    if especific_user is None:
+        return jsonify({"msj":"El usuario no existe"}), 404 #en el caso que exista me avisa y da el error 404
+    
+    especific_planet= Planets.query.filter_by(id=id).first() 
+    if especific_planet is None:
+        return jsonify({"msj":"El planeta no existe"}), 404 #en el caso que exista me avisa y da el error 404
+
+    new_favorite = Favorites(
+        user_id  = request_body['user_id'],# informacion que quiero de mi usuario y que tengo contenida en mi request_body
+        planets_id = id, #es solo id porque ya lo obtengo en mi ruta y planet_id es de mi models.py
+    )
+
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify({"msj":"Tu favorito fue creado"}), 201
+
+#ENDPOINT DELETE
+@app.route('/favorites/<int:id>', methods=['DELETE'])
+def delete_fav(id):
+    especific_fav= Favorites.query.filter_by(id=id).first() #me permite filtrar si el usuario existe
+    if especific_fav is None:
+        return jsonify({"msg":"No existe el favorito"}), 404#result es mi lista de favoritos para ese id
+    
+
+    db.session.delete(especific_fav)
+    db.session.commit()    
+    return jsonify({"msj":"Se ha elimidado tu favorito"}), 201
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
