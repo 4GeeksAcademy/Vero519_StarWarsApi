@@ -40,11 +40,12 @@ def sitemap():
     return generate_sitemap(app)
 
 #ENDPOINT USUARIOS
+#GET Usuarios
 @app.route('/users', methods=['GET'])
 def get_users():
     all_users= User.query.all()
     if all_users == []: #si mi array esta vacio entonces return envia el msj no exiten usarios
-        return jsonify({"msj":"no existen usarios"}), 404 #si entra en el if la duncion termina ahi.
+        return jsonify({"msj":"No existen usarios"}), 404 #si entra en el if la funcion termina ahi.
     
     result= list(map(lambda item:item.serialize(),all_users)) # linea de codigo que me perite listar todos los usuarios
 
@@ -54,7 +55,20 @@ def get_users():
     }
     return jsonify(response_body), 200
 
+#GET para un usuario
+@app.route('/users/<int:id>', methods=['GET'])
+def get_user(id):
+    # print(id)
+    especific_user= User.query.filter_by(id=id).first()
+    if especific_user is None:
+        return jsonify({"msj":"El usuario no existe"}), 404
+    # print(especific_user)
+    query_result= especific_user.serialize()
+    print(query_result)
+    return jsonify(query_result), 200
+
 #ENDPOINT PERSONAJES
+#GET Personajes
 @app.route('/characters', methods=['GET'])
 def get_characters():
     all_characters= Characters.query.all()
@@ -66,22 +80,41 @@ def get_characters():
     }
     return jsonify(response_body), 200
 
+#GET Personaje
+@app.route('/characters/<int:id>', methods=['GET'])
+def get_character(id):
+    # print(id)
+    especific_character= Characters.query.filter_by(id=id).first()
+    # print(especific_character)
+    query_result= especific_character.serialize()
+    # print(query_result)
+    return jsonify(query_result), 200
+
 #ENDPOINT PLANETAS
+#GET Planetas
 @app.route('/planets', methods=['GET'])
 def get_planets():
     all_planets= Planets.query.all()
     result= list(map(lambda item:item.serialize(),all_planets))
-
     response_body = {
         "msg": "Estos son tus planetas",
         "results": result
     }
     return jsonify(response_body), 200
 
+#GET Planeta
+@app.route('/planets/<int:id>', methods=['GET'])
+def get_planet(id):
+    especific_planet= Planets.query.filter_by(id=id).first()
+    # print(especific_planet)
+    query_result= especific_planet.serialize()
+    return jsonify(query_result), 200
+
 #ENDPOINT FAVORITOS
-@app.route('/user/<int:id>/favorites', methods=['GET']) #cada vez que tengo una ruta dinamico id(dinamico) tenfo que pasarlo como parametro
+#GET Favoritos
+@app.route('/user/<int:id>/favorites', methods=['GET']) #cada vez que tengo una ruta dinamica (ej.id) tengo que pasarlo como parametro
 def get_favorites(id):
-    print(id)
+    print(id) #imprime mis id
     user_resul = Favorites.query.filter_by(user_id=id).all()# filter_by(propiedad a consultar=memoria donde se guarda el dato) 
     print(user_resul)
     result= list(map(lambda item:item.serialize(),user_resul)) # linea de codigo que me perite listar todos los favoritos

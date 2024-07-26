@@ -46,7 +46,7 @@ class Planets(db.Model):
     favorites = db.relationship('Favorites', backref='planets', lazy=True)
     
     def __repr__(self):
-        return '<Planets %r>' % self.name
+        return '<Planets %r>' % self.name_planet
     
     def serialize(self):
         return {
@@ -92,11 +92,13 @@ class Favorites(db.Model):
     def serialize(self):
         query_character = Characters.query.filter_by(id=self.characters_id).first()
         print(query_character.serialize())
+        query_planets = Planets.query.filter_by(id=self.planets_id).first()
+        print(query_planets.serialize())
         return {
 
             "id": self.id,
             "user_id": self.user_id,
-            "planets_id": self.planets_id,
+            "planets_id": query_planets.serialize()["name_planet"],
             "characters_info": query_character.serialize()["name"]
         }
 
